@@ -83,68 +83,83 @@ result_label.grid(row=4+num_crew_astronauts+num_mission_specialists+1, column=1)
 
 # Get the selected celestial body and its mass multiplier
 def calculate():
-    if not celestial_body_listbox.curselection():
-        result_label.config(text="Please select a celestial body.")
-        result_label.grid(row=4+num_crew_astronauts+num_mission_specialists+1, column=1)
-        return
-    selected_body = celestial_body_listbox.get(celestial_body_listbox.curselection())
-    selected_body = selected_body.split(" ")[0]
-    selected_multiplier = celestial_bodies[selected_body]
-    
-    # Check if all mass entries are valid numbers
-    for entry in crew_mass_entries + specialist_mass_entries:
-        if entry.get():
-            try:
-                float(entry.get())
-            except ValueError:
-                result_label.config(text="Please enter valid numbers for astronaut masses.")
-                result_label.grid(row=4+num_crew_astronauts+num_mission_specialists+1, column=1)
-                return
-    
-    total_mass = 0
-    for entry in crew_mass_entries + specialist_mass_entries:
-        if entry.get():
-            total_mass += float(entry.get())
-    total_mass *= selected_multiplier
-    
-    # Check if the total mass exceeds the total mass allowance
-    if total_mass > (flight_crew_allowance * num_crew_astronauts) + (mission_specialist_allowance * num_mission_specialists):
-        result_label.config(text="Total mass exceeds total mass allowance.")
-        result_label.grid(row=4+num_crew_astronauts+num_mission_specialists+1, column=1)
-        return
-    
-    crew_mass_allowance = flight_crew_allowance * num_crew_astronauts
-    specialist_mass_allowance = mission_specialist_allowance * num_mission_specialists
-    total_mass_allowance = crew_mass_allowance + specialist_mass_allowance
-    personal_mass_allowance = total_mass_allowance - total_mass
-    avg_personal_mass_allowance = personal_mass_allowance / (num_crew_astronauts + num_mission_specialists)
+    try:
+        # Check if celestial body is selected
+        if not celestial_body_listbox.curselection():
+            result_label.config(text="Please select a celestial body.")
+            result_label.grid(row=4+num_crew_astronauts+num_mission_specialists+1, column=1)
+            return
+        selected_body = celestial_body_listbox.get(celestial_body_listbox.curselection())
+        selected_body = selected_body.split(" ")[0]
+        selected_multiplier = celestial_bodies[selected_body]
+        
+        # Check if all mass entries are valid numbers
+        for entry in crew_mass_entries + specialist_mass_entries:
+            if entry.get():
+                try:
+                    float(entry.get())
+                except ValueError:
+                    result_label.config(text="Please enter valid numbers for astronaut masses.")
+                    result_label.grid(row=2+num_crew_astronauts+num_mission_specialists+1, column=1)
+                    return
+        
+        total_mass = 0
+        for entry in crew_mass_entries + specialist_mass_entries:
+            if entry.get():
+                total_mass += float(entry.get())
+        total_mass *= selected_multiplier
+        
+        # Check if the total mass exceeds the total mass allowance
+        if total_mass > (flight_crew_allowance * num_crew_astronauts) + (mission_specialist_allowance * num_mission_specialists):
+            result_label.config(text="Total mass exceeds total mass allowance.")
+            result_label.grid(row=1, column=1)
+            return
+        
+        crew_mass_allowance = flight_crew_allowance * num_crew_astronauts
+        specialist_mass_allowance = mission_specialist_allowance * num_mission_specialists
+        total_mass_allowance = crew_mass_allowance + specialist_mass_allowance
+        personal_mass_allowance = total_mass_allowance - total_mass
+        avg_personal_mass_allowance = personal_mass_allowance / (num_crew_astronauts + num_mission_specialists)
 
-    # Calculate the personal mass allowance for each astronaut
-    crew_personal_mass = []
-    for i, entry in enumerate(crew_mass_entries):
-        if entry.get():
-            crew_mass = float(entry.get())
-            personal_mass = flight_crew_allowance - crew_mass
-            crew_personal_mass.append(personal_mass)
-            crew_personal_mass_labels[i].config(text=f"{i+1}: {personal_mass:.2f} kg")
+        # Calculate the personal mass allowance for each astronaut
+        crew_personal_mass = []
+        for i, entry in enumerate(crew_mass_entries):
+            if entry.get():
+                crew_mass = float(entry.get())
+                if crew_mass > flight_crew_allowance:
+                    result_label.config(text=f"Crew Astronaut {i+1} mass exceeds the allowed limit.")
+                    result_label.grid(row=4+num_crew_astronauts+num_mission_specialists+1, column=1)
+                    return
+                personal_mass = flight_crew_allowance - crew_mass
+                crew_personal_mass.append(personal_mass)
+                crew_personal_mass_labels[i].config(text=f"{i+1}: {personal_mass:.2f} kg")
 
-    specialist_personal_mass = []
-    for i, entry in enumerate(specialist_mass_entries):
-        if entry.get():
-            specialist_mass = float(entry.get())
-            personal_mass = mission_specialist_allowance - specialist_mass
-            specialist_personal_mass.append(personal_mass)
-            specialist_personal_mass_labels[i].config(text=f"{i+1}: {personal_mass:.2f} kg")
+        specialist_personal_mass = []
+        for i, entry in enumerate(specialist_mass_entries):
+            if entry.get():
+                specialist_mass = float(entry.get())
+                if specialist_mass > mission_specialist_allowance:
+                    result_label.config(text=f"Mission Specialist {i+1} mass exceeds the allowed limit.")
+                    result_label.grid(row=4+num_crew_astronauts+num_mission_specialists+1, column=1)
+                    return
+                personal_mass = mission_specialist_allowance - specialist_mass
+                specialist_personal_mass.append(personal_mass)
+                specialist_personal_mass_labels[i].config(text=f"{i+1}: {personal_mass:.2f} kg")
 
-    # Calculate the weight of the average available personal mass allowance on the selected celestial body
-    avg_personal_mass_allowance_weight = avg_personal_mass_allowance / selected_multiplier
+        # Calculate the weight of the average available personal mass allowance on the selected celestial body
+        avg_personal_mass_allowance_weight = avg_personal_mass_allowance / selected_multiplier
 
-    # Display the results
-    result_label.config(text=f"Total Available Mass: {total_mass:.2f} kg\n"
-                            f"Personal Mass Allowance: {personal_mass_allowance:.2f} kg\n"
-                            f"Avg Personal Mass Allowance: {avg_personal_mass_allowance:.2f} kg\n"
-                            f"Avg Personal Mass Allowance Weight: {avg_personal_mass_allowance_weight:.2f} kg")
-    result_label.grid(row=1, column=1)
+        # Display the results
+        result_label.config(text=f"Total Available Mass: {total_mass:.2f} kg\n"
+                                f"Personal Mass Allowance: {personal_mass_allowance:.2f} kg\n"
+                                f"Avg Personal Mass Allowance: {avg_personal_mass_allowance:.2f} kg\n"
+                                f"Avg Personal Mass Allowance Weight: {avg_personal_mass_allowance_weight:.2f} kg")
+        result_label.grid(row=1, column=1)
+    
+    except Exception as e:
+        result_label.config(text="An error occurred. Please try again.")
+        result_label.grid(row=1, column=1)
+        print(e)
 
 
 # Create a button to calculate the results
@@ -154,7 +169,7 @@ calculate_button.grid(row=4+num_crew_astronauts+num_mission_specialists, column=
 
 # Exit the program
 exit_button = tk.Button(root, text="Exit", command=root.quit)
-exit_button.grid(row=17, column=2)
+exit_button.grid(row=10, column=2)
 
 # Create a label to display the results
 result_label = tk.Label(root)
