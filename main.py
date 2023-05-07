@@ -11,15 +11,15 @@ celestial_bodies = {
 "Callisto": 0.1264
 }
 
-# Define the weight allowances for the two types of astronauts
+
 flight_crew_allowance = 100
 mission_specialist_allowance = 150
 
-# Define the assumptions for the number of astronauts
+
 num_crew_astronauts = 3
 num_mission_specialists = 3
 
-# Define the GUI
+
 root = tk.Tk()
 root.title("Astronaut Mass Calculator")
 
@@ -100,9 +100,15 @@ def calculate():
                     float(entry.get())
                 except ValueError:
                     result_label.config(text="Please enter valid numbers for astronaut masses.")
-                    result_label.grid(row=2+num_crew_astronauts+num_mission_specialists+1, column=1)
+                    result_label.grid(row=4+num_crew_astronauts+num_mission_specialists+1, column=1)
                     return
-        
+                
+        # Check if all inputs are filled
+        for entry in crew_mass_entries + specialist_mass_entries:
+            if not entry.get():
+                result_label.config(text="Please fill in all astronaut masses.")
+                result_label.grid(row=4+num_crew_astronauts+num_mission_specialists+1, column=1)
+                return
         total_mass = 0
         for entry in crew_mass_entries + specialist_mass_entries:
             if entry.get():
